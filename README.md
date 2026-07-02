@@ -4,7 +4,7 @@ Role-based student analytics: dashboards for admin / teacher / student / parent,
 attendance & results tracking, ML at-risk prediction, gamification, calendar,
 grade forecasts, learning paths, and parent–teacher meetings.
 
-**Architecture:** API-only Django backend + separate React frontend. See
+**Architecture:** API-only Django backend + separate React frontend. See the
 [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```
