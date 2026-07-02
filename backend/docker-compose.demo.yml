@@ -1,6 +1,9 @@
-# Minimal single-container demo stack: SQLite, no Postgres/Redis/Celery.
+# Minimal demo stack: SQLite + Caddy (auto-HTTPS). No Postgres/Redis/Celery.
 # For a throwaway demo on a t3.micro. Data lives in the db.sqlite3 bind-mount.
 #   docker compose -f docker-compose.demo.yml up -d --build
+#
+# Caddy terminates TLS (free Let's Encrypt cert for your DuckDNS host) and
+# reverse-proxies to gunicorn, so the frontend gets an HTTPS backend URL.
 services:
   web:
     build: .
@@ -8,17 +11,30 @@ services:
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     environment:
-      # Dev settings = SQLite fallback + DEBUG on (fine for a dummy-data demo).
       - DJANGO_ENV=development
       - DJANGO_DEBUG=1
-      # Allow any host so http://<ec2-ip>:8000 works without knowing the IP ahead.
       - DJANGO_ALLOWED_HOSTS=*
-      # Let the frontend origin call the API (set to your Vercel URL after deploy).
-      - CORS_ALLOWED_ORIGINS=http://localhost:5173
+      # Your Vercel origin so the browser's cross-origin call is allowed.
+      - CORS_ALLOWED_ORIGINS=https://smarteducation-main.vercel.app,http://localhost:5173
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
     restart: unless-stopped
 
 volumes:
   static_volume:
+  caddy_data:
+  caddy_config:
