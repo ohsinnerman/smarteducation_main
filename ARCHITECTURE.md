@@ -22,7 +22,7 @@ separate React frontend that consumes it over HTTPS.
 - **Django REST Framework**, authentication via **JWT**  (`JWTAuthentication`
   first, `SessionAuthentication` retained for the admin site / same-origin).
 - **Serves no end-user HTML.** The only templates are Django admin's own (via
-  `APP_DIRS` + whitenoise for admin static). All the app-level templates were
+  `APP_DIRS` + whitenoise for admin static). All the app-level  templates were
   removed in the split.
 - **`api/`** exposes every feature as JSON: core academic CRUD (students, courses,
   subjects, exams, results, attendance, enrollments, feedback), notifications &
