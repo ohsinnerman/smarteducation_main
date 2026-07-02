@@ -39,3 +39,4 @@ desktop.ini
 dist/
 build/
 *.egg-info/
+new.pem
