@@ -7,6 +7,10 @@ grade forecasts, learning paths, and parent–teacher meetings.
 **Architecture:** API-only Django backend + separate React frontend. See the
 [ARCHITECTURE.md](ARCHITECTURE.md).
 
+**Live demo:** frontend on Vercel (`https://smarteducation-main.vercel.app`) →
+backend on AWS EC2 behind HTTPS (`https://smartedu14783.duckdns.org/api`). Log in
+with any demo account below.
+
 ```
 smarteducation/
 ├── backend/     Django + DRF REST API (+ admin). Postgres in prod, SQLite in dev.
@@ -68,5 +72,39 @@ warning when unset rather than silently no-op-ing.
 
 ## Deployment
 
-Backend → EC2 + docker-compose (+ RDS); frontend → Vercel/Netlify. Full
-copy-pasteable guide in [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
+The live demo runs a lightweight, free-tier-friendly setup (SQLite, dummy data):
+
+**Backend — AWS EC2 (t3.micro), Docker Compose, SQLite, HTTPS via Caddy:**
+
+```bash
+# on the instance, in backend/
+cat > Caddyfile <<'EOF'
+smartedu14783.duckdns.org {
+    reverse_proxy web:8000
+}
+EOF
+docker compose -f docker-compose.demo.yml up -d --build
+docker compose -f docker-compose.demo.yml exec web python manage.py migrate
+docker compose -f docker-compose.demo.yml exec web python manage.py seed_demo_data
+docker compose -f docker-compose.demo.yml exec web python manage.py reset_predictions --train
+```
+
+- `docker-compose.demo.yml` runs Django (gunicorn) + **Caddy**, which auto-provisions
+  a free Let's Encrypt cert and terminates HTTPS in front of the app.
+- HTTPS requires a hostname you control — a free **DuckDNS** subdomain
+  (`smartedu14783.duckdns.org`) points at the EC2 public IP. The AWS default
+  `*.compute.amazonaws.com` host cannot get a cert.
+- Security group must allow **22 (SSH), 80, 443**.
+- `.env` on the box: `DJANGO_ALLOWED_HOSTS=*`, and `CORS_ALLOWED_ORIGINS` set to the
+  Vercel origin.
+
+**Frontend — Vercel:**
+
+- Root Directory: `frontend`
+- Env var: `VITE_API_BASE_URL=https://smartedu14783.duckdns.org/api`
+- `frontend/vercel.json` adds an SPA fallback so client-side routes don't 404 on
+  reload. Because the backend is HTTPS, the frontend calls it directly (no proxy,
+  no mixed-content block).
+
+For the fuller production path (nginx/RDS/SSM, hardened `DJANGO_ENV=production`), see
+[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
