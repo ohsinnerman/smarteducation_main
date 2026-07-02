@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Teacher Dashboard - Smart Education Analytics{% endblock %}
+{% block page_title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-muted mb-1">Download your teacher report for attendance, GPA, student performance, and course analytics.</p>
+        <h5 class="fw-bold">Teacher Reporting</h5>
+    </div>
+    <a href="{% url 'dashboards:dashboard_report_download' %}" class="btn btn-primary">
+        <i class="bi bi-download me-1"></i>Download Report
+    </a>
+</div>
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 small">My Courses</p>
+                    <h3 class="mb-0 fw-bold">{{ course_count }}</h3>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-book-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 small">My Students</p>
+                    <h3 class="mb-0 fw-bold">{{ student_count }}</h3>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success"><i class="bi bi-people-fill"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <p class="text-muted mb-1 small">Avg Rating</p>
+                    <h3 class="mb-0 fw-bold">{{ avg_my_rating }} <small class="text-muted fs-6">/ 5</small></h3>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-star-fill"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-7">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-calendar-check me-2"></i>Attendance Trend</h6>
+            <canvas id="attendanceTrendChart" height="120"></canvas>
+        </div>
+    </div>
+    <div class="col-xl-5">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2"></i>Marks Distribution</h6>
+            <canvas id="marksDistChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Row -->
+<div class="row g-3">
+    <div class="col-xl-6">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>At-Risk in My Courses</h6>
+            {% if at_risk_in_courses %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Student</th><th>Risk</th><th>Confidence</th></tr></thead>
+                    <tbody>
+                    {% for pred in at_risk_in_courses %}
+                    <tr>
+                        <td>{{ pred.student.name }}</td>
+                        <td><span class="badge bg-{% if pred.risk_level == 'high' %}danger{% else %}warning{% endif %}">{{ pred.risk_level|title }}</span></td>
+                        <td>{{ pred.confidence|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No at-risk students in your courses.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-calendar-event me-2"></i>Upcoming Exams</h6>
+            {% if upcoming_exams %}
+            {% for exam in upcoming_exams %}
+            <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                <div>
+                    <strong>{{ exam.name }}</strong>
+                    <br><small class="text-muted">{{ exam.subject.name }}</small>
+                </div>
+                <span class="badge bg-primary">{{ exam.date }}</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-muted">No upcoming exams.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Feedback -->
+{% if my_feedback %}
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-chat-quote me-2"></i>Recent Feedback</h6>
+            {% for fb in my_feedback %}
+            <div class="border-bottom py-2">
+                <strong>{{ fb.student.name }}</strong>
+                <span class="text-warning">{% for i in "12345" %}{% if forloop.counter <= fb.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</span>
+                <p class="mb-0 text-muted small">{{ fb.comment|default:"No comment" }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+new Chart(document.getElementById('attendanceTrendChart'), {
+    type: 'line',
+    data: {
+        labels: {{ attendance_labels|safe }},
+        datasets: [{
+            label: 'Present',
+            data: {{ attendance_present|safe }},
+            borderColor: '#198754',
+            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+            fill: true, tension: 0.4,
+        }, {
+            label: 'Total',
+            data: {{ attendance_total|safe }},
+            borderColor: '#6c757d',
+            borderDash: [5, 5],
+            tension: 0.4,
+        }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('marksDistChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ marks_labels|safe }},
+        datasets: [{
+            label: 'Students',
+            data: {{ marks_values|safe }},
+            backgroundColor: '#001f8f',
+            borderRadius: 6,
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}

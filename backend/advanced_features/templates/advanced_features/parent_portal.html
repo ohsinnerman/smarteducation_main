@@ -1,0 +1,42 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Guardian Portal{% endblock %}
+{% block page_title %}Guardian Portal{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="stat-card">
+            <h4>Welcome, {{ parent.name }}!</h4>
+            <p class="text-muted">Monitor your student's academic progress here.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="chart-container">
+            <h5 class="mb-3"><i class="bi bi-people me-2 text-primary"></i>Your Children</h5>
+            {% if children %}
+                <div class="row g-3">
+                    {% for link in children %}
+                        <div class="col-md-4">
+                            <div class="border p-3 rounded" style="background-color: #f0f4ff;">
+                                <h6 class="fw-bold">{{ link.student.name }}</h6>
+                                <p class="mb-1"><strong>Attendance:</strong> {{ link.student.attendance }}%</p>
+                                <p class="mb-2"><strong>Current Marks:</strong> {{ link.student.marks }}</p>
+                                <a href="{% url 'advanced_features:progress_report' link.student.id %}" class="btn btn-sm btn-outline-primary">
+                                    View Progress Report
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted text-center py-4">No students linked to your account yet. Contact admin for assistance.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Notification Preferences - Smart Education Analytics{% endblock %}
+{% block page_title %}Notification Preferences{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="stat-card">
+            <h5 class="fw-bold mb-4"><i class="bi bi-gear me-2"></i>Notification Preferences</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="email_enabled" id="email" {% if preferences.email_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="email"><i class="bi bi-envelope me-2"></i>Email Notifications</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="sms_enabled" id="sms" {% if preferences.sms_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="sms"><i class="bi bi-phone me-2"></i>SMS Notifications</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="whatsapp_enabled" id="whatsapp" {% if preferences.whatsapp_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="whatsapp"><i class="bi bi-whatsapp me-2"></i>WhatsApp Notifications</label>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="in_app_enabled" id="inapp" {% if preferences.in_app_enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="inapp"><i class="bi bi-bell me-2"></i>In-App Notifications</label>
+                </div>
+                <button type="submit" class="btn btn-primary" style="background: var(--primary); border: none;">
+                    <i class="bi bi-check-lg me-1"></i>Save Preferences
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

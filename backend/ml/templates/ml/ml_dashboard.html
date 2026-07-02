@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}AI/ML Module - Smart Education Analytics{% endblock %}
+{% block page_title %}AI/ML Module{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <p class="text-muted small mb-1">Total Predictions</p>
+            <h3 class="fw-bold">{{ total_predictions }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <p class="text-muted small mb-1">At-Risk Students</p>
+            <h3 class="fw-bold text-danger">{{ at_risk_count }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <form method="POST" action="{% url 'ml:train_model' %}" id="trainForm">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary" style="background: var(--primary); border: none;">
+                    <i class="bi bi-cpu me-1"></i>Train Models
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card text-center">
+            <form method="POST" action="{% url 'ml:run_predictions' %}" id="predictForm">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-lightning me-1"></i>Run Predictions
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-6">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-bullseye me-2"></i>Prediction Accuracy</h6>
+            <canvas id="accuracyChart" height="150"></canvas>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>At-Risk Students</h6>
+            {% if at_risk_students %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Student</th><th>Risk</th><th>Confidence</th></tr></thead>
+                    <tbody>
+                    {% for pred in at_risk_students %}
+                    <tr>
+                        <td><a href="{% url 'ml:student_prediction' pred.student.id %}">{{ pred.student.name }}</a></td>
+                        <td><span class="badge bg-{% if pred.risk_level == 'high' %}danger{% elif pred.risk_level == 'low' %}success{% else %}warning{% endif %}">{{ pred.risk_level|default:"medium"|title }}</span></td>
+                        <td>{{ pred.confidence|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No at-risk students. Run predictions first.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-12">
+        <div class="chart-container">
+            <h6 class="fw-bold mb-3"><i class="bi bi-table me-2"></i>All Predictions</h6>
+            {% if predictions %}
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Student</th><th>Type</th><th>Predicted Value</th><th>Confidence</th><th>Risk</th><th>Date</th></tr></thead>
+                    <tbody>
+                    {% for pred in predictions %}
+                    <tr>
+                        <td><a href="{% url 'ml:student_prediction' pred.student.id %}">{{ pred.student.name }}</a></td>
+                        <td>{{ pred.get_prediction_type_display }}</td>
+                        <td>{{ pred.predicted_value|floatformat:1 }}</td>
+                        <td>{{ pred.confidence|floatformat:2 }}</td>
+                        <td>{% if pred.risk_level %}<span class="badge bg-{% if pred.risk_level == 'high' %}danger{% elif pred.risk_level == 'low' %}success{% else %}warning{% endif %}">{{ pred.risk_level|title }}</span>{% else %}-{% endif %}</td>
+                        <td>{{ pred.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted">No predictions yet. Train models and run predictions.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+new Chart(document.getElementById('accuracyChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ accuracy_data.labels|safe }},
+        datasets: [{
+            label: 'Accuracy %',
+            data: {{ accuracy_data.values|safe }},
+            backgroundColor: ['#001f8f', '#198754'],
+            borderRadius: 6,
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
+});
+
+// Handle form submissions via AJAX
+document.getElementById('trainForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch(this.action, { method: 'POST', headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }})
+    .then(r => r.json()).then(data => { alert('Training complete: ' + JSON.stringify(data)); location.reload(); });
+});
+document.getElementById('predictForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    fetch(this.action, { method: 'POST', headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }})
+    .then(r => r.json()).then(data => { alert('Predictions generated: ' + JSON.stringify(data)); location.reload(); });
+});
+</script>
+{% endblock %}

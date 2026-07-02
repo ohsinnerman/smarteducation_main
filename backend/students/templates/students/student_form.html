@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if student %}Edit Student{% else %}Add Student{% endif %}{% endblock %}
+{% block page_title %}{% if student %}Edit Student{% else %}Add Student{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="stat-card">
+            <h5 class="fw-bold mb-4"><i class="bi bi-person-plus me-2"></i>{% if student %}Edit{% else %}Add{% endif %} Student</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Name *</label>
+                        <input type="text" name="name" class="form-control" value="{% if student %}{{ student.name }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Program</label>
+                        <select name="program" class="form-select">
+                            <option value="bsc" {% if student and student.program == 'bsc' %}selected{% endif %}>Bachelor of Science (BSc)</option>
+                            <option value="btech" {% if student and student.program == 'btech' %}selected{% endif %}>Bachelor of Technology (BTech)</option>
+                            <option value="ba" {% if student and student.program == 'ba' %}selected{% endif %}>Bachelor of Arts (BA)</option>
+                            <option value="bcom" {% if student and student.program == 'bcom' %}selected{% endif %}>Bachelor of Commerce (BCom)</option>
+                            <option value="msc" {% if student and student.program == 'msc' %}selected{% endif %}>Master of Science (MSc)</option>
+                            <option value="mtech" {% if student and student.program == 'mtech' %}selected{% endif %}>Master of Technology (MTech)</option>
+                            <option value="ma" {% if student and student.program == 'ma' %}selected{% endif %}>Master of Arts (MA)</option>
+                            <option value="phd" {% if student and student.program == 'phd' %}selected{% endif %}>Doctor of Philosophy (PhD)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Year</label>
+                        <input type="number" name="year" class="form-control" min="1" value="{% if student %}{{ student.year }}{% endif %}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="specialization" class="form-control" value="{% if student %}{{ student.specialization }}{% endif %}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Attendance %</label>
+                        <input type="number" name="attendance" class="form-control" min="0" max="100" value="{% if student %}{{ student.attendance }}{% else %}0{% endif %}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Marks</label>
+                        <input type="number" name="marks" class="form-control" min="0" max="100" value="{% if student %}{{ student.marks }}{% else %}0{% endif %}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="active" {% if student and student.status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if student and student.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Report</label>
+                        <input type="file" name="report" class="form-control">
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" style="background: var(--primary); border: none;">
+                        <i class="bi bi-check-lg me-1"></i>{% if student %}Update{% else %}Add{% endif %}
+                    </button>
+                    <a href="{% url 'student_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

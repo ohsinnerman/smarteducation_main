@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Smart Education Analytics{% endblock %}
+
+{% block no_auth_content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="text-center mb-4">
+                <i class="bi bi-mortarboard-fill text-primary" style="font-size: 3rem;"></i>
+                <h2 class="mt-2" style="color: var(--primary);">Smart Education Analytics</h2>
+                <p class="text-muted">Choose your role to sign in</p>
+            </div>
+
+            <!-- Role Selection Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 role-card cursor-pointer" data-role="student" style="border-radius: 12px;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-person-arms-up text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="fw-bold text-primary">Student</h5>
+                            <p class="text-muted small mb-0">Access your dashboard, grades, and attendance</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 role-card cursor-pointer" data-role="teacher" style="border-radius: 12px;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-person-workspace text-success" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="fw-bold text-success">Teacher</h5>
+                            <p class="text-muted small mb-0">Manage courses, students, and exams</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 role-card cursor-pointer" data-role="parent" style="border-radius: 12px;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-people-fill text-info" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="fw-bold text-info">Parent</h5>
+                            <p class="text-muted small mb-0">View your student's progress and advising schedule</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card shadow-sm border-0 role-card cursor-pointer" data-role="admin" style="border-radius: 12px;">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-gear-wide-connected text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="fw-bold text-warning">Admin</h5>
+                            <p class="text-muted small mb-0">Full system access and analytics</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="card shadow-sm border-0" style="border-radius: 15px;" id="loginFormCard">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3 text-center" id="selectedRoleTitle">Select a role to continue</h5>
+                    {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    <form method="POST" id="loginForm" style="display: {{ selected_role|yesno:'block,none' }};" action="{{ form_action }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="selected_role" id="selectedRoleInput" value="{{ selected_role }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" style="background: var(--primary); border: none; border-radius: 8px;">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        </button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <span class="text-muted">Don't have an account?</span>
+                        <a href="{% url 'signup' %}" class="text-decoration-none fw-semibold" style="color: var(--primary);"> Sign Up</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .role-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .role-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    .role-card.selected {
+        border: 2px solid var(--primary);
+        background: rgba(0, 31, 143, 0.05);
+    }
+    .role-card.selected h5 {
+        color: var(--primary) !important;
+    }
+    .role-card.selected i {
+        color: var(--primary) !important;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleCards = document.querySelectorAll('.role-card');
+        const loginForm = document.getElementById('loginForm');
+        const selectedRoleInput = document.getElementById('selectedRoleInput');
+        const selectedRoleTitle = document.getElementById('selectedRoleTitle');
+        const roleNames = {
+            'student': 'Student Login',
+            'teacher': 'Teacher Login',
+            'admin': 'Admin Login',
+            'parent': 'Parent Login'
+        };
+
+        const preselectedRole = '{{ selected_role|default:"" }}';
+        if (preselectedRole) {
+            const selectedCard = document.querySelector(`.role-card[data-role="${preselectedRole}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+                selectedRoleTitle.textContent = roleNames[preselectedRole] || 'Login';
+                selectedRoleInput.value = preselectedRole;
+                loginForm.style.display = 'block';
+            }
+        }
+
+        roleCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const role = this.getAttribute('data-role');
+                window.location.href = `/login/${role}/`;
+                return;
+            });
+        });
+    });
+</script>
+{% endblock %}

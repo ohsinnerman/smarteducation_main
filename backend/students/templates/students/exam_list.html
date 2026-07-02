@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Exams{% endblock %}
+{% block page_title %}Exams{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="mb-0">{{ exams|length }} exams</h6>
+    {% if is_admin or user.profile.role == 'teacher' %}
+    <a href="{% url 'exam_create' %}" class="btn btn-primary" style="background: var(--primary); border: none;"><i class="bi bi-plus-lg me-1"></i>Add Exam</a>
+    {% endif %}
+</div>
+<div class="stat-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Name</th><th>Subject</th><th>Type</th><th>Total Marks</th><th>Date</th>{% if is_admin or user.profile.role == 'teacher' %}<th>Actions</th>{% endif %}</tr></thead>
+            <tbody>
+            {% for exam in exams %}
+            <tr>
+                <td class="fw-semibold">{{ exam.name }}</td>
+                <td>{{ exam.subject.name }}</td>
+                <td><span class="badge bg-info">{{ exam.get_exam_type_display }}</span></td>
+                <td>{{ exam.total_marks }}</td>
+                <td>{{ exam.date }}</td>
+                {% if is_admin or user.profile.role == 'teacher' %}
+                <td>
+                    <a href="{% url 'exam_update' exam.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="{% if is_admin or user.profile.role == 'teacher' %}6{% else %}5{% endif %}" class="text-center text-muted py-4">No exams found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Adaptive Learning Path{% endblock %}
+{% block page_title %}Adaptive Learning Path{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-xl-8">
+        <div class="chart-container">
+            <h5 class="mb-3"><i class="bi bi-book me-2 text-primary"></i>Personalized Learning Paths</h5>
+            {% if learning_paths %}
+                {% for lp in learning_paths %}
+                    <div class="mb-4 border p-3 rounded" style="background-color: #f8f9fa;">
+                        <h6 class="fw-bold">{{ lp.subject.name }}</h6>
+                        <p class="mb-2"><strong>Weak Topics:</strong> {{ lp.weak_topics }}</p>
+                        <p class="mb-2"><strong>Recommended Study Hours:</strong> {{ lp.recommended_study_hours }} hours/week</p>
+                        {% if lp.resources.exists %}
+                            <div>
+                            <strong>Recommended Resources:</strong>
+                            <ul class="mt-2">
+                                {% for r in lp.resources.all %}
+                                    <li><a href="{{ r.url }}" target="_blank" class="text-decoration-none">{{ r.title }} ({{ r.get_resource_type_display }} - {{ r.provider }})</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted text-center py-4">No personalized learning paths available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-xl-4">
+        <div class="chart-container">
+            <h5 class="mb-3"><i class="bi bi-collection me-2 text-success"></i>Learning Resources</h5>
+            {% if resources %}
+                {% for r in resources %}
+                    <div class="border-bottom py-3">
+                        <a href="{{ r.url }}" target="_blank" class="text-decoration-none fw-bold">{{ r.title }}</a>
+                        <p class="text-muted small mb-0">
+                            {{ r.subject.name }} • {{ r.get_resource_type_display }} • {{ r.provider }} • Difficulty: {{ r.difficulty_level }}
+                        </p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted text-center py-4">No learning resources available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

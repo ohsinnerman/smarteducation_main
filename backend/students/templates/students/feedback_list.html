@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Feedback{% endblock %}
+{% block page_title %}Feedback & Ratings{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="mb-0">{{ feedbacks|length }} feedbacks</h6>
+    {% if is_admin %}
+    <a href="{% url 'feedback_create' %}" class="btn btn-primary" style="background: var(--primary); border: none;"><i class="bi bi-plus-lg me-1"></i>Add Feedback</a>
+    {% endif %}
+</div>
+<div class="stat-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead><tr><th>Student</th><th>Teacher</th><th>Rating</th><th>Comment</th><th>Date</th></tr></thead>
+            <tbody>
+            {% for fb in feedbacks %}
+            <tr>
+                <td>{{ fb.student.name }}</td>
+                <td>{{ fb.teacher.username }}</td>
+                <td class="text-warning">{% for i in "12345" %}{% if forloop.counter <= fb.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %}</td>
+                <td>{{ fb.comment|default:"-"|truncatewords:10 }}</td>
+                <td>{{ fb.created_at|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted py-4">No feedback yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
