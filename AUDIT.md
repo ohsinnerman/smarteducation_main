@@ -5,7 +5,7 @@ read. This document is the paper trail; later phases reference these item number
 
 Scope note: the owner chose to execute **Phase 0 + Phase 1 only** in this pass
 (config/env layer), with the frontend (Phase 3), seed consolidation (Phase 2), and
-EC2/AWS deployment (Phases 4–5) deferred. Decisions for those phases are recorded
+EC2/AWS deployment (Phases 4–5) deferred. Decisions for those phases are  recorded
 here where they affect Phase 1, but the work is not done yet.
 
 ---
