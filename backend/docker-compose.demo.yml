@@ -1,0 +1,24 @@
+# Minimal single-container demo stack: SQLite, no Postgres/Redis/Celery.
+# For a throwaway demo on a t3.micro. Data lives in the db.sqlite3 bind-mount.
+#   docker compose -f docker-compose.demo.yml up -d --build
+services:
+  web:
+    build: .
+    command: gunicorn --bind 0.0.0.0:8000 --workers 2 smarteducation.wsgi:application
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    ports:
+      - "8000:8000"
+    environment:
+      # Dev settings = SQLite fallback + DEBUG on (fine for a dummy-data demo).
+      - DJANGO_ENV=development
+      - DJANGO_DEBUG=1
+      # Allow any host so http://<ec2-ip>:8000 works without knowing the IP ahead.
+      - DJANGO_ALLOWED_HOSTS=*
+      # Let the frontend origin call the API (set to your Vercel URL after deploy).
+      - CORS_ALLOWED_ORIGINS=http://localhost:5173
+    restart: unless-stopped
+
+volumes:
+  static_volume:

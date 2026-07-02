@@ -1,21 +1,22 @@
 from django.conf import settings
 from .models import Notification
+from .config import twilio_configured
 
 
 def send_sms_notification(user, message):
     """Send SMS notification using Twilio."""
+    ok, reason = twilio_configured()
+    if not ok:
+        Notification.objects.create(
+            user=user,
+            title='SMS Notification',
+            message=message,
+            notification_type='sms',
+            status='failed',
+        )
+        return False
     try:
         from twilio.rest import Client
-
-        if not settings.TWILIO_ACCOUNT_SID or not settings.TWILIO_AUTH_TOKEN:
-            Notification.objects.create(
-                user=user,
-                title='SMS Notification',
-                message=message,
-                notification_type='sms',
-                status='failed',
-            )
-            return False
 
         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 

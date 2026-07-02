@@ -2,10 +2,21 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
 from .models import Notification
+from .config import email_configured
 
 
 def send_email_notification(user, title, message):
     """Send an email notification to a user."""
+    ok, reason = email_configured()
+    if not ok:
+        Notification.objects.create(
+            user=user,
+            title=title,
+            message=message,
+            notification_type='email',
+            status='failed',
+        )
+        return False
     try:
         send_mail(
             subject=title,

@@ -11,8 +11,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DEBUG=1
-      - DJANGO_SETTINGS_MODULE=smarteducation.settings
+      # DJANGO_ENV selects dev/prod inside the settings package; no need to pin
+      # DJANGO_SETTINGS_MODULE (that previously forced base settings and made
+      # DATABASE_URL/REDIS_URL below be ignored).
+      - DJANGO_ENV=development
+      - DJANGO_DEBUG=1
       - DATABASE_URL=postgres://postgres:postgres@db:5432/smarteducation
       - REDIS_URL=redis://redis:6379/0
     depends_on:
@@ -41,7 +44,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - DJANGO_SETTINGS_MODULE=smarteducation.settings
+      - DJANGO_ENV=development
       - DATABASE_URL=postgres://postgres:postgres@db:5432/smarteducation
       - REDIS_URL=redis://redis:6379/0
     depends_on:

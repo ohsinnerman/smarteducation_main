@@ -14,13 +14,14 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
-        run: |
-          cd smarteducation
-          pip install -r requirements.txt
+        # manage.py and requirements.txt live at the repo ROOT, not in the
+        # smarteducation/ package dir. The previous `cd smarteducation` made both
+        # of these steps fail.
+        run: pip install -r requirements.txt
       - name: Run checks
-        run: |
-          cd smarteducation
-          python manage.py check
+        run: python manage.py check
+      - name: Diagnose environment
+        run: python manage.py diagnose_env
 
   deploy:
     needs: test
@@ -44,8 +45,10 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: smarteducation
           IMAGE_TAG: ${{ github.sha }}
+        # NOTE (Phase 4, deferred): this job still targets ECS/ECR. The chosen
+        # deploy path is direct-EC2 + docker-compose, so this deploy job will be
+        # replaced in Phase 4. Build context is the repo root (Dockerfile is here).
         run: |
-          cd smarteducation
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 

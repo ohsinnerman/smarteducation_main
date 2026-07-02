@@ -1,3 +1,13 @@
+"""
+AI-generated student insights.
+
+NOTE (Phase 1 audit): this module currently contains ONLY the deterministic
+fallback — there is no OpenAI call here, so OPENAI_API_KEY has no effect on the
+output. `diagnose_env` reports OpenAI as "[OFF]" until real OpenAI wiring is
+added; when it is, guard the call with `settings.OPENAI_API_KEY` and fall back to
+`generate_student_insight` below when the key is unset.
+"""
+
 
 def generate_student_insight(student_data):
     """Generate AI insight for a student (fallback without OpenAI)."""

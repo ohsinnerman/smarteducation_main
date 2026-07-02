@@ -94,4 +94,9 @@ def ensure_demo_accounts():
 
 @receiver(post_migrate)
 def setup_demo_accounts(sender, **kwargs):
-    ensure_demo_accounts()
+    # Gated so demo accounts are never silently created against a real database.
+    # Enable explicitly with SEED_DEMO_ACCOUNTS_ON_MIGRATE=true, or use the
+    # `seed_demo_data` management command instead.
+    from django.conf import settings
+    if getattr(settings, "SEED_DEMO_ACCOUNTS_ON_MIGRATE", False):
+        ensure_demo_accounts()

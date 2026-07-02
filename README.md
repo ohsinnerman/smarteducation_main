@@ -1,63 +1,72 @@
-# Smart Education System
+# Smart Education Analytics Platform
 
-A Django-based smart education platform for managing students, teachers, parents, dashboards, notifications, and AI-assisted analytics.
+Role-based student analytics: dashboards for admin / teacher / student / parent,
+attendance & results tracking, ML at-risk prediction, gamification, calendar,
+grade forecasts, learning paths, and parent–teacher meetings.
 
-## Features
-- Role-based dashboards for admin, teacher, student, and parent users
-- Student, course, subject, attendance, and result management
-- Notification and email integration
-- Demo accounts for quick testing
-- Basic AI/ML prediction support
+**Architecture:** API-only Django backend + separate React frontend. See
+[ARCHITECTURE.md](ARCHITECTURE.md).
 
-## Project Structure
-- `smarteducation/` — main Django project
-- `smarteducation/accounts/` — authentication and role-based login flow
-- `smarteducation/dashboards/` — dashboard views and templates
-- `smarteducation/students/` — student and academic data management
-- `smarteducation/notifications/` — notifications and email integration
-- `smarteducation/ml/` — ML-related models and prediction logic
-
-## Tech Stack
-- Python 3.11+
-- Django 5.2+
-- SQLite (development)
-- Bootstrap-based templates
-
-## Getting Started
-
-### 1. Clone the repository
-```bash
-git clone <your-repo-url>
-cd smart_education_system-main
+```
+smarteducation/
+├── backend/     Django + DRF REST API (+ admin). Postgres in prod, SQLite in dev.
+├── frontend/    React + Vite SPA. Consumes the API over VITE_API_BASE_URL.
+├── AUDIT.md · ARCHITECTURE.md · DEPLOYMENT_GUIDE.md · WALL_OF_SHAME.md
 ```
 
-### 2. Create and activate a virtual environment
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
+## Local setup
 
-### 3. Install dependencies
-```bash
-pip install -r smarteducation/requirements.txt
-```
+### Backend
 
-### 4. Apply migrations and run the server
 ```bash
-cd smarteducation
+cd backend
+python -m venv .venv && source .venv/Scripts/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env            # edit as needed; SQLite works with no DB config
 python manage.py migrate
-python manage.py runserver
+python manage.py seed_demo_data # creates demo users + full demo dataset
+python manage.py diagnose_env   # shows which integrations are configured
+python manage.py runserver      # http://localhost:8000
 ```
 
-## Demo Credentials
-After starting the app, the following demo accounts are available:
-- Admin: `admin_demo` / `admin1234`
-- Teacher: `teacher_demo` / `teacher1234`
-- Student 1: `student_demo1` / `student1234`
-- Student 2: `student_demo2` / `student1234`
-- Student 3: `student_demo3` / `student1234`
-- Parent: `parent_demo` / `parent1234`
+**On a completely fresh database, the full path is:**
+`migrate` → `seed_demo_data` (→ optional `reset_predictions --train` for ML).
+`seed_demo_data` is idempotent and safe to re-run.
 
-## Notes
-- The project is currently configured for local development and can be adapted for production deployment.
-- For AWS deployment, configure environment variables and a production database before publishing.
+### Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env            # set VITE_API_BASE_URL=http://localhost:8000/api
+npm run dev                     # http://localhost:5173
+```
+
+## Demo credentials
+
+| Role    | Username                | Password      |
+|---------|-------------------------|---------------|
+| Admin   | `admin_demo`            | `admin1234`   |
+| Teacher | `teacher_demo`          | `teacher1234` |
+| Student | `student_demo1` (2, 3)  | `student1234` |
+| Parent  | `parent_demo`           | `parent1234`  |
+
+## Management commands
+
+- `python manage.py seed_demo_data` — idempotent demo/academic data seed.
+- `python manage.py reset_predictions [--train] [--clear-only]` — ML predictions.
+- `python manage.py diagnose_env` — report resolved config + which optional
+  integrations (email/Twilio/OpenAI) are on/off. Run this in deploys.
+
+## Configuration
+
+All backend config comes from `backend/.env` (see `.env.example` for the full,
+annotated list). In `DJANGO_ENV=production`, missing `DJANGO_SECRET_KEY`,
+`DATABASE_URL`, `DJANGO_ALLOWED_HOSTS`, or `CORS_ALLOWED_ORIGINS` is a hard
+startup failure — no silent dev fallbacks. Optional integrations log a loud
+warning when unset rather than silently no-op-ing.
+
+## Deployment
+
+Backend → EC2 + docker-compose (+ RDS); frontend → Vercel/Netlify. Full
+copy-pasteable guide in [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md).
